@@ -51,5 +51,5 @@ def agendar():
         return jsonify(agendamentos)
 
 if __name__ == '__main__':
-    init_db()  # Chama a função para inicializar o banco e a tabela
+    #init_db()  # Chama a função para inicializar o banco e a tabela
     app.run(host="0.0.0.0",port=10000,debug=True)
