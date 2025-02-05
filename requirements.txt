@@ -94,7 +94,6 @@ python-telegram-bot==21.6
 python3-nmap==1.6.0
 pytube==15.0.0
 pytz==2024.2
-pywin32==308
 pywin32-ctypes==0.2.3
 PyYAML==6.0.2
 reedsolo==1.7.0
