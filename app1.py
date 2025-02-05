@@ -1,30 +1,12 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template_string
 import sqlite3
 
 app = Flask(__name__)
 
-# Função para inicializar o banco de dados e a tabela
-def init_db():
-    conn = sqlite3.connect("idpb.db")
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS agendamentos 
-        (
-            nome TEXT,
-            telefone TEXT,
-            evento TEXT,
-            data TEXT,
-            horario TEXT,
-            convidados INTEGER
-        )
-    """)
-    conn.commit()
-    conn.close()
-
-# Página inicial que exibe o formulário
 @app.route('/')
-def index():
-    return """
+def home():
+    # HTML do formulário dentro do Flask
+    html = '''
     <!DOCTYPE html>
     <html lang="pt-br">
     <head>
@@ -94,7 +76,7 @@ def index():
                 <label for="nome">Nome do Responsável:</label>
                 <input type="text" id="nome" name="nome" required>
                 <span class="error" id="erro-nome">Por favor, insira seu nome.</span>
-                
+
                 <label for="telefone">Telefone do Responsável:</label>
                 <input type="tel" id="telefone" name="telefone" required>
                 <span class="error" id="erro-telefone">Por favor, insira um telefone válido.</span>
@@ -122,27 +104,49 @@ def index():
         </div>
     </body>
     </html>
-    """
+    '''
+    return render_template_string(html)
 
-# Rota para receber dados do formulário e salvar no banco
-@app.route('/agendar', methods=['GET', 'POST'])
+@app.route('/agendar', methods=['POST'])
 def agendar():
-    if request.method == 'POST':
-        dados = request.form  # Recebe os dados do formulário HTML
+    dados = request.form  # Recebe os dados do formulário HTML
 
-        # Conecta ao banco e insere os dados
-        conn = sqlite3.connect("idpb.db")
-        cursor = conn.cursor()
-        cursor.execute("""
-            INSERT INTO agendamentos (nome, telefone, evento, data, horario, convidados)
-            VALUES (?,?,?,?,?,?)
-        """, (dados['nome'], dados['telefone'], dados['evento'], dados['data'], dados['horario'], dados['convidados']))
+    # Conecta ao banco e insere os dados
+    conn = sqlite3.connect("idpb.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO agendamentos (nome, telefone, evento, data, horario, convidados)
+        VALUES (?,?,?,?,?,?)
+    """, (dados['nome'], dados['telefone'], dados['evento'], dados['data'], dados['horario'], dados['convidados']))
 
-        conn.commit()
-        conn.close()
+    conn.commit()
+    conn.close()
 
-        return jsonify({"mensagem": "Agendamento realizado com sucesso!"})
+    return jsonify({"mensagem": "Agendamento realizado com sucesso!"})
+
+@app.route('/listar', methods=['GET'])
+def listar_agendamentos():
+    # Conecta ao banco e recupera os agendamentos
+    conn = sqlite3.connect("idpb.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT nome, telefone, evento, data, horario, convidados FROM agendamentos")
+    agendamentos = cursor.fetchall()
+    conn.close()
+
+    # Converte os dados para um formato adequado
+    lista_agendamentos = [
+        {"nome": agendamento[0], "telefone": agendamento[1], "evento": agendamento[2], 
+         "data": agendamento[3], "horario": agendamento[4], "convidados": agendamento[5]}
+        for agendamento in agendamentos
+    ]
+
+    # Exibe a lista no navegador
+    html = '<h2>Lista de Agendamentos</h2><ul>'
+    for agendamento in lista_agendamentos:
+        html += f'<li><strong>Nome:</strong> {agendamento["nome"]} - <strong>Evento:</strong> {agendamento["evento"]} - <strong>Data:</strong> {agendamento["data"]} - <strong>Convidados:</strong> {agendamento["convidados"]}</li>'
+    html += '</ul>'
+
+    return render_template_string(html)
 
 if __name__ == '__main__':
-    init_db()  # Chama a função para inicializar o banco e a tabela
-    app.run(host="0.0.0.0", port=10000, debug=True)
+    app.run(debug=True)
