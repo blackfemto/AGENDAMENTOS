@@ -1,3 +1,4 @@
+import os
 from flask import Flask, request, jsonify
 import sqlite3
 
@@ -51,5 +52,6 @@ def agendar():
         return jsonify(agendamentos)
 
 if __name__ == '__main__':
-    init_db()  # Chama a função para inicializar o banco e a tabela
-    app.run(host="0.0.0.0",port=10000,debug=True)
+    init_db()  # Certifique-se de inicializar o banco de dados
+    port = int(os.environ.get("PORT", 10000))  # Usa a porta do ambiente
+    app.run(host="0.0.0.0", port=port, debug=True)
