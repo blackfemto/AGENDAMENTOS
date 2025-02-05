@@ -27,6 +27,11 @@ def init_db():
         conn.close()
         print("Banco de dados e tabela criados com sucesso!")
 
+# Rota principal
+@app.route('/')
+def index():
+    return "Bem-vindo ao sistema de agendamento de eventos!"
+
 # Rota para receber dados do formulário e salvar no banco
 @app.route('/agendar', methods=['GET', 'POST'])
 def agendar():
